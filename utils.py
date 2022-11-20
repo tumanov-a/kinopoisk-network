@@ -38,10 +38,13 @@ def labels_list_parameters(graph, layout, parameter, delete_by_len_name):
                     continue
                 viz_x, viz_y = layout[name][0], layout[name][1]
 #                 new_viz_y = viz_y - (i // 2) ** 1/4 * 0.025
-                new_viz_y = viz_y + 0.001
-                new_viz_x = viz_x + 0.02
-
-                layout[name] = np.array([new_viz_x, new_viz_y])
+                if parameter not in ['eigenvector', 'katz']:
+                    new_viz_y = viz_y + 0.001
+                    new_viz_x = viz_x + 0.02
+                    layout[name] = np.array([new_viz_x, new_viz_y])
+                else:
+                    viz_x, viz_y = layout[name][0], layout[name][1]
+                    layout[name] = np.array([viz_x, viz_y])
                 net_params['labels'][name] = name
 
             net_params['pos'] = layout
@@ -65,10 +68,10 @@ def plot_graph_by_centrality_measure(graph, layout, centrality_measure, delete_b
         def node_size_func(x): return -np.log(x) * 100
     elif centrality_measure == 'eigenvector':
         centralities = nx.eigenvector_centrality(graph)
-        def node_size_func(x): return x ** 1/2 * 7000
+        def node_size_func(x): return x ** 1/2 * 1000
     elif centrality_measure == 'katz':
         centralities = nx.katz_centrality(graph)
-        def node_size_func(x): return x * 5000
+        def node_size_func(x): return x * 1000
 
     top_n_names = list(labels_list_parameters(
         graph, layout, centrality_measure, delete_by_len_name)[0]['labels'].keys())
@@ -78,6 +81,7 @@ def plot_graph_by_centrality_measure(graph, layout, centrality_measure, delete_b
     plt.figure(figsize=(17, 16))
     nx.draw_networkx_nodes(graph,
                            pos=layout,
+#                            edgecolors='#cccccc',
                            node_color=['#EA0599' if i in top_n_inds else '#bbbbbb' for i, val in enumerate(
                                centralities)],
                            node_size=[node_size_func(dgc) for name, dgc in centralities.items()])
